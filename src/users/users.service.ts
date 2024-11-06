@@ -15,7 +15,6 @@ export class UsersService {
   ) {}
 
   async create(newUser: UserDto) {
-    const userAlreadyRegistered = await this.findByEmail(newUser.email)
     
     if (userAlreadyRegistered) {
       throw new ConflictException(`User ${newUser.email} already registered`)
@@ -30,7 +29,6 @@ export class UsersService {
     return { id, email }
   }
 
-  async findByEmail(email: string): Promise<UserDto | null> {
     const userFound = await this.usersRepository.findOne({
       where: { email }
     })
