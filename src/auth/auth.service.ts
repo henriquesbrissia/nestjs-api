@@ -14,7 +14,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {
-    this.jwtExpiration = +this.configService.get<number>('JWT_EXPIRATION_TIME')
+    this.jwtExpiration = Number(this.configService.get<number>('JWT_EXPIRATION_TIME'))
   }
 
   async signIn(email: string, password: string): Promise<AuthResponseDto> {
