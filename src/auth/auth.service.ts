@@ -14,11 +14,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {
-    this.jwtExpiration = +this.configService.get<number>('JWT_EXPIRATION_TIME')
+    this.jwtExpiration = Number(this.configService.get<number>('JWT_EXPIRATION_TIME'))
   }
 
   async signIn(email: string, password: string): Promise<AuthResponseDto> {
-    const foundUser = await this.userService.findByEmail(email)
+    const foundUser = await this.userService.findOne(email)
 
     if (!foundUser || !compareSync(password, foundUser.password)) {
       throw new UnauthorizedException();
