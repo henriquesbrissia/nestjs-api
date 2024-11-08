@@ -14,7 +14,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: UserDto): Promise<UserResponseDto> {
-    const userAlreadyRegistered = await this.findOne(createUserDto.email);
+    const userAlreadyRegistered = await this.findOne({ email: createUserDto.email });
 
     if (userAlreadyRegistered) {
       throw new ConflictException(`User ${createUserDto.email} already registered`);
@@ -29,11 +29,17 @@ export class UsersService {
     return { id, email };
   }
 
-  async findOne(email: string): Promise<User | null> {
-    const userFound = await this.usersRepository.findOne({ where: { email } });
+  async findOne({ id, email }: { id?: string; email?: string }): Promise<User | null> {
+    let userFound: User | undefined;
+
+    if (id) {
+      userFound = await this.usersRepository.findOne({ where: { id } });
+    } else if (email) {
+      userFound = await this.usersRepository.findOne({ where: { email } });
+    }
 
     if (!userFound) {
-      throw new NotFoundException();
+      throw new NotFoundException('User not found');
     }
 
     return userFound;
