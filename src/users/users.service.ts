@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './user.dto';
+import { CreateUserDto, FindOneUserDto } from './user.dto';
 import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/db/entities/user.entity';
@@ -29,14 +29,8 @@ export class UsersService {
     return { id, email };
   }
 
-  async findOne({ id, email }: { id?: string; email?: string }): Promise<User | null> {
-    let userFound: User | undefined;
-
-    if (id) {
-      userFound = await this.usersRepository.findOne({ where: { id } });
-    } else if (email) {
-      userFound = await this.usersRepository.findOne({ where: { email } });
-    }
+  async findOne(findOneUserDto: FindOneUserDto) {
+    const userFound = await this.usersRepository.findOne({ where: findOneUserDto });
 
     if (!userFound) {
       throw new NotFoundException('User not found');
