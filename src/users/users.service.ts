@@ -1,7 +1,6 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { UserDto } from './user.dto';
-import { v4 as uuid } from 'uuid'
-import { hashSync } from 'bcrypt';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto, FindOneUserDto } from './user.dto';
+import { hash } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/db/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -14,35 +13,29 @@ export class UsersService {
     private readonly usersRepository: Repository<User>
   ) {}
 
-  async create(newUser: UserDto) {
-    const userAlreadyRegistered = await this.findByEmail(newUser.email)
-    
+  async create(createUserDto: CreateUserDto) {
+    const userAlreadyRegistered = await this.findOne({ email: createUserDto.email });
+
     if (userAlreadyRegistered) {
-      throw new ConflictException(`User ${newUser.email} already registered`)
+      throw new ConflictException(`User ${createUserDto.email} already registered`);
     }
 
-    const dbUser = new User()
-    dbUser.email = newUser.email
-    dbUser.password = hashSync(newUser.password, 10)
+    const dbUser = new User();
+    dbUser.email = createUserDto.email;
+    dbUser.password = await hash(createUserDto.password, 10);
 
-    const { id, email } = await this.usersRepository.save(dbUser)
+    const { id, email } = await this.usersRepository.save(dbUser);
 
-    return { id, email }
+    return { id, email };
   }
 
-  async findByEmail(email: string): Promise<UserDto | null> {
-    const userFound = await this.usersRepository.findOne({
-      where: { email }
-    })
+  async findOne(findOneUserDto: FindOneUserDto) {
+    const userFound = await this.usersRepository.findOne({ where: findOneUserDto });
 
     if (!userFound) {
-      return null
+      throw new NotFoundException('User not found');
     }
 
-    return {
-      id: userFound.id,
-      email: userFound.email,
-      password: userFound.password
-    }
+    return userFound;
   }
 }
